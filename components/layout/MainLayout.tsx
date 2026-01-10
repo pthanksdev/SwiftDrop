@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from './Footer';
 import MobileNav from './MobileNav';
+import SupportChat from '../ai/SupportChat';
 
 const MainLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -54,6 +55,7 @@ const MainLayout: React.FC = () => {
         </main>
 
         <MobileNav />
+        <SupportChat />
       </div>
 
       <style>{`

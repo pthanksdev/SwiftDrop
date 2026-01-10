@@ -4,6 +4,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { Truck, Menu, X, Sun, Moon } from 'lucide-react';
 import Button from '../common/Button';
 import { cn } from '../../lib/utils';
+import SupportChat from '../ai/SupportChat';
 
 const PublicLayout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -158,6 +159,8 @@ const PublicLayout: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      <SupportChat />
     </div>
   );
 };

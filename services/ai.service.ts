@@ -1,12 +1,12 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-// Fixed: Strictly follow GenAI SDK initialization guidelines for naming and direct process.env usage
+// Strictly follow GenAI SDK initialization guidelines
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
  * Logistics AI Service
- * Provides predictive analytics and fleet optimization suggestions using Gemini
+ * Provides predictive analytics, fleet optimization, and customer support via Gemini
  */
 export const aiLogisticsService = {
   /**
@@ -16,9 +16,9 @@ export const aiLogisticsService = {
     try {
       const prompt = `
         Analyze the following real-time logistics data for SwiftDrop:
-        - Total Orders Today: ${currentStats.orders}
-        - Active Drivers: ${currentStats.drivers}
-        - Pending Dispatch: ${currentStats.pending}
+        - Total Orders Today: ${currentStats.orders || 0}
+        - Active Drivers: ${currentStats.drivers || 0}
+        - Pending Dispatch: ${currentStats.pending || 0}
         - Success Rate: 99.4%
         - Peak Regions: Sunset District, Downtown Core
         
@@ -27,12 +27,11 @@ export const aiLogisticsService = {
         Keep suggestions extremely professional, data-driven, and concise.
       `;
 
-      // Fixed: Strictly following text generation rules for Gemini 3 series
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
         config: {
-          systemInstruction: "You are the Lead Logistics Orchestrator for an enterprise delivery platform. Your tone is clinical, strategic, and concise.",
+          systemInstruction: "You are the Lead Logistics Orchestrator for SwiftDrop, an enterprise delivery platform. Your tone is clinical, strategic, and concise.",
         }
       });
 
@@ -41,5 +40,26 @@ export const aiLogisticsService = {
       console.error("Gemini AI Integration Error:", err);
       return "Unable to calibrate fleet via AI layer. Check System Relay connection.";
     }
+  },
+
+  /**
+   * Creates a stateful chat session for user support
+   */
+  createSupportChat() {
+    return ai.chats.create({
+      model: 'gemini-3-flash-preview',
+      config: {
+        systemInstruction: `
+          You are the SwiftDrop AI Support Assistant. 
+          Your goal is to help users with:
+          1. Tracking shipments (ask for Order ID if not provided).
+          2. Explaining shipping policies (fragile items, dimensions, insurance).
+          3. General platform navigation.
+          
+          Tone: Helpful, precise, and efficient.
+          Disclaimer: You can assist with information, but cannot perform physical delivery actions.
+        `,
+      },
+    });
   }
 };

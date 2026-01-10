@@ -52,7 +52,7 @@ const LandingPage: React.FC = () => {
               <ScrollReveal delay={600} className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-6">
                 <Button 
                   size="lg" 
-                  className="w-full sm:w-auto px-12 py-6 text-lg rounded-[2rem] bg-blue-600 text-white shadow-2xl shadow-blue-600/40 hover:bg-blue-500 transition-all font-black uppercase tracking-widest text-xs" 
+                  className="w-full sm:w-auto px-12 py-6 text-lg rounded-[2rem] bg-blue-600 text-white shadow-2xl shadow-blue-600/40 hover:bg-blue-500 transition-all font-black uppercase tracking-widest" 
                   onClick={() => navigate('/register')}
                 >
                   Start Free Trial <ArrowRight size={20} className="ml-2" />
@@ -243,14 +243,14 @@ const LandingPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <Button 
               size="lg" 
-              className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-12 py-7 text-xl rounded-full shadow-2xl font-black uppercase tracking-widest text-xs" 
+              className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-12 py-7 text-xl rounded-full shadow-2xl font-black uppercase tracking-widest" 
               onClick={() => navigate('/register')}
             >
               Start Free Trial
             </Button>
             <Button 
               variant="ghost" 
-              className="w-full sm:w-auto text-white border-white/20 hover:bg-white/10 px-12 py-7 text-xl rounded-full font-black uppercase tracking-widest text-xs" 
+              className="w-full sm:w-auto text-white border-white/20 hover:bg-white/10 px-12 py-7 text-xl rounded-full font-black uppercase tracking-widest" 
               onClick={() => navigate('/contact')}
             >
               Contact Sales

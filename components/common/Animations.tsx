@@ -3,7 +3,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '../../lib/utils';
 
 interface AnimationProps {
-  children: React.ReactNode;
+  // Fixed: Made children optional to support components like BlurText that do not use children
+  children?: React.ReactNode;
   className?: string;
   delay?: number;
 }
