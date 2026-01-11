@@ -1,65 +1,84 @@
 
-import { GoogleGenAI } from "@google/genai";
-
-// Strictly follow GenAI SDK initialization guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 
 /**
  * Logistics AI Service
- * Provides predictive analytics, fleet optimization, and customer support via Gemini
+ * Provides predictive analytics, fleet optimization, and customer support via Gemini.
+ * Adheres to expert initialization and grounding guidelines.
  */
 export const aiLogisticsService = {
   /**
-   * Generates fleet optimization suggestions based on current system load
+   * Generates deep-thinking fleet optimization suggestions using Pro models and Maps grounding.
    */
   async getFleetOptimizationInsights(currentStats: any) {
+    // Initialize fresh instance at call-site
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
     try {
       const prompt = `
-        Analyze the following real-time logistics data for SwiftDrop:
-        - Total Orders Today: ${currentStats.orders || 0}
-        - Active Drivers: ${currentStats.drivers || 0}
-        - Pending Dispatch: ${currentStats.pending || 0}
-        - Success Rate: 99.4%
-        - Peak Regions: Sunset District, Downtown Core
+        Analyze current logistics throughput for SwiftDrop:
+        - Active Orders: ${currentStats.orders || 0}
+        - Online Units: ${currentStats.drivers || 0}
+        - Delayed/Stale: ${currentStats.pending || 0}
+        - Primary Hotspots: Sunset District, Downtown Core, SoMa
         
-        Provide 3 high-impact strategies for fleet optimization for the next 4 hours. 
+        Using Google Maps context, provide 3 strategic deployment adjustments for the next 4-hour window.
         Focus on reducing "Pending Dispatch" and improving "Average Delivery Time".
-        Keep suggestions extremely professional, data-driven, and concise.
       `;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3-pro-preview',
         contents: prompt,
         config: {
-          systemInstruction: "You are the Lead Logistics Orchestrator for SwiftDrop, an enterprise delivery platform. Your tone is clinical, strategic, and concise.",
+          systemInstruction: "You are the Lead Logistics Orchestrator. Your tone is clinical and strategic. Use Maps grounding to verify location-based recommendations.",
+          tools: [{ googleMaps: {} }],
+          // Use thinking budget for complex reasoning tasks
+          thinkingConfig: { thinkingBudget: 4000 }
         }
       });
 
-      return response.text || "Analysis currently unavailable.";
+      return {
+        text: response.text || "Analysis currently unavailable.",
+        grounding: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
+      };
     } catch (err) {
-      console.error("Gemini AI Integration Error:", err);
-      return "Unable to calibrate fleet via AI layer. Check System Relay connection.";
+      console.error("Gemini Pro Integration Error:", err);
+      return { text: "Unable to calibrate fleet via AI layer. Check System Relay.", grounding: [] };
     }
   },
 
   /**
-   * Creates a stateful chat session for user support
+   * Creates a stateful chat session with Search grounding for the help desk.
    */
   createSupportChat() {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     return ai.chats.create({
       model: 'gemini-3-flash-preview',
       config: {
         systemInstruction: `
-          You are the SwiftDrop AI Support Assistant. 
-          Your goal is to help users with:
-          1. Tracking shipments (ask for Order ID if not provided).
-          2. Explaining shipping policies (fragile items, dimensions, insurance).
-          3. General platform navigation.
-          
-          Tone: Helpful, precise, and efficient.
-          Disclaimer: You can assist with information, but cannot perform physical delivery actions.
+          You are the SwiftDrop AI Assistant. Help users with tracking, policies, and navigation.
+          Always use Google Search to verify real-world conditions like weather or traffic if relevant.
         `,
+        tools: [{ googleSearch: {} }]
       },
+    });
+  },
+
+  /**
+   * Connects to the Live API for hands-free driver interaction.
+   */
+  async connectLiveRelay(callbacks: any) {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return ai.live.connect({
+      model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+      callbacks,
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
+        },
+        systemInstruction: "You are the Driver's Voice Co-Pilot. Provide hands-free status updates and route navigation tips. Keep responses extremely brief and safe for driving."
+      }
     });
   }
 };

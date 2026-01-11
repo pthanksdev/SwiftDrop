@@ -3,6 +3,7 @@
   "description": "A comprehensive real-time delivery management platform for admins, dispatchers, drivers, and customers.",
   "requestFramePermissions": [
     "camera",
-    "geolocation"
+    "geolocation",
+    "microphone"
   ]
 }

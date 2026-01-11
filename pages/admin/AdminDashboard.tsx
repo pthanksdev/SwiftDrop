@@ -5,7 +5,8 @@ import {
   TrendingUp, AlertTriangle, CheckCircle, 
   ArrowRight, Server, Database, Globe,
   Terminal, ShieldCheck, UserPlus,
-  RefreshCw, Truck, Briefcase, Zap, Sparkles
+  RefreshCw, Truck, Briefcase, Zap, Sparkles,
+  MapPin, ExternalLink
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -18,7 +19,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
+  const [aiInsight, setAiInsight] = useState<any>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
   const fetchStats = async () => {
@@ -47,8 +48,8 @@ const AdminDashboard: React.FC = () => {
   const generateAiInsights = async () => {
     if (!stats) return;
     setAiLoading(true);
-    const insight = await aiLogisticsService.getFleetOptimizationInsights(stats);
-    setAiInsight(insight);
+    const result = await aiLogisticsService.getFleetOptimizationInsights(stats);
+    setAiInsight(result);
     setAiLoading(false);
   };
 
@@ -67,7 +68,7 @@ const AdminDashboard: React.FC = () => {
         </div>
         <div className="flex items-center gap-3">
           <Button onClick={generateAiInsights} isLoading={aiLoading} className="rounded-xl h-12 bg-indigo-600 shadow-lg shadow-indigo-200">
-             <Sparkles size={16} className="mr-2" /> Ask AI Orchestrator
+             <Sparkles size={16} className="mr-2" /> Deep Analysis (Gemini Pro)
           </Button>
           <Badge className="bg-emerald-100 text-emerald-700 font-black text-[10px] uppercase tracking-widest px-4 py-2 border-emerald-200">
             <Server size={14} className="mr-2" /> Global Relay: Active
@@ -84,11 +85,24 @@ const AdminDashboard: React.FC = () => {
                  <h4 className="font-black uppercase tracking-[0.2em] text-xs">AI Fleet Intelligence</h4>
               </div>
               <div className="prose prose-invert prose-sm max-w-none">
-                 <p className="text-xl font-bold leading-relaxed whitespace-pre-line">{aiInsight}</p>
+                 <p className="text-xl font-bold leading-relaxed whitespace-pre-line">{aiInsight.text}</p>
               </div>
+              
+              {aiInsight.grounding?.length > 0 && (
+                <div className="pt-4 space-y-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grounding Context (Google Maps)</p>
+                  <div className="flex flex-wrap gap-2">
+                    {aiInsight.grounding.map((chunk: any, i: number) => chunk.maps && (
+                      <a key={i} href={chunk.maps.uri} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-bold text-blue-400 transition-colors">
+                        <MapPin size={12} /> {chunk.maps.title || "View Location"} <ExternalLink size={10} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="pt-4 flex gap-3">
                  <Button size="sm" className="bg-blue-600 rounded-xl font-bold text-xs uppercase" onClick={() => setAiInsight(null)}>Acknowledge</Button>
-                 <Button variant="ghost" size="sm" className="text-slate-400 font-bold text-xs uppercase">Rerun Diagnostic</Button>
               </div>
            </div>
         </div>

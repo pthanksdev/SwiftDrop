@@ -6,10 +6,15 @@ import Header from './Header';
 import Footer from './Footer';
 import MobileNav from './MobileNav';
 import SupportChat from '../ai/SupportChat';
+import VoiceRelay from '../ai/VoiceRelay';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { UserRole } from '../../types/api.types';
 
 const MainLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const location = useLocation();
+  const { user } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     if (window.innerWidth < 1024) {
@@ -56,6 +61,7 @@ const MainLayout: React.FC = () => {
 
         <MobileNav />
         <SupportChat />
+        {user?.role === UserRole.DRIVER && <VoiceRelay />}
       </div>
 
       <style>{`
