@@ -18,9 +18,34 @@ const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
       updated: 'March 15, 2024',
       description: 'How we collect, protect, and process your logistics data.',
       sections: [
-        { title: '1. Information Collection', text: 'We collect data necessary for logistics orchestration, including location tracking, contact details, and transaction history.' },
-        { title: '2. GPS Telemetry', text: 'Real-time location data is collected for active shipment tracking and fleet optimization. Data is purged after delivery completion unless archived for audit.' },
-        { title: '3. Data Security', text: 'All data is encrypted in transit using TLS 1.3 and at rest via AES-256 standards. Access is restricted to authorized administrative personnel.' }
+        { 
+          title: '1. Information Collection', 
+          text: 'We collect data necessary for logistics orchestration, including full name, verified email address, biological/business contact details, and encrypted transaction history. This data is essential for maintaining your SwiftDrop identity and ensuring secure access to our dispatch relay.' 
+        },
+        { 
+          title: '2. GPS Telemetry & Geospatial Data', 
+          text: 'Real-time location data is collected from both couriers and recipients during active shipment cycles. This telemetry is used for live mapping, route optimization, and calculating precise ETAs. All granular GPS pings are purged from our active caches within 30 days of delivery completion, unless flagged for safety or security audit requirements.' 
+        },
+        { 
+          title: '3. Data Security & Encryption', 
+          text: 'SwiftDrop implements military-grade security protocols. All data in transit is shielded via TLS 1.3 encryption. At-rest data is siloed and encrypted using AES-256 standards. Our infrastructure undergoes quarterly penetration testing to ensure the integrity of the logistics relay remains uncompromised.' 
+        },
+        { 
+          title: '4. Third-Party Data Transmission', 
+          text: 'To facilitate global deliveries, specific data points (such as delivery address and recipient contact) are shared with our verified courier network and infrastructure partners like Google Maps and Stripe. We never sell your personal data to advertisers or data brokers; our sharing is strictly operational.' 
+        },
+        { 
+          title: '5. User Data Rights (GDPR/CCPA)', 
+          text: 'Regardless of your geographic location, SwiftDrop provides comprehensive data rights. Users may request a machine-readable export of their data (Portability), ask for immediate rectification of inaccuracies, or request the permanent deletion of their account and associated metadata (The Right to be Forgotten).' 
+        },
+        { 
+          title: '6. Retention & Archival Policy', 
+          text: 'We retain financial records for a period of seven years as required by international tax law. Operational logs are maintained for a period of twelve months to support any claims adjudication or customer support inquiries, after which they are either anonymized for AI training or permanently scrubbed.' 
+        },
+        { 
+          title: '7. Amendments to this Policy', 
+          text: 'The logistics landscape is dynamic. We reserve the right to update this privacy framework to reflect new regulatory requirements or platform capabilities. Substantial changes will be broadcast via the administrative console and to your verified email relay at least 14 days prior to taking effect.' 
+        }
       ]
     },
     terms: {
