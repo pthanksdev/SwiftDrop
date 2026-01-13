@@ -1,4 +1,3 @@
-
 import React, { useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -51,7 +50,6 @@ const AuditLogs = lazy(() => import('./pages/admin/AuditLogs'));
 const LandingPage = lazy(() => import('./pages/public/LandingPage'));
 const AboutPage = lazy(() => import('./pages/public/AboutPage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
-const CareersPage = lazy(() => import('./pages/public/CareersPage'));
 const PressPage = lazy(() => import('./pages/public/PressPage'));
 const PublicTracking = lazy(() => import('./pages/public/PublicTracking'));
 const LegalPage = lazy(() => import('./pages/public/LegalPage'));
@@ -117,7 +115,6 @@ const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/careers" element={<CareersPage />} />
           <Route path="/press" element={<PressPage />} />
           <Route path="/tracking" element={<PublicTracking />} />
           <Route path="/api" element={<ApiReferencePage />} />

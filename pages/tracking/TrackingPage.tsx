@@ -1,10 +1,9 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Package, MapPin, Truck, CheckCircle, Clock, 
   ChevronLeft, Phone, MessageSquare, ShieldCheck,
-  Star, Info, Activity
+  Star, Info, Activity, Play, Pause, RefreshCw
 } from 'lucide-react';
 import { ordersApi } from '../../api/endpoints/orders.api';
 import { Order, OrderStatus } from '../../types/order.types';
@@ -26,6 +25,8 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [driverPos, setDriverPos] = useState<[number, number] | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const simIntervalRef = useRef<number | null>(null);
 
   // Sync with global order list for status changes
   const globalOrders = useSelector((state: RootState) => state.orders.list);
@@ -70,20 +71,51 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
 
     fetchTrackingData();
 
-    // Only listen for specific driver movement here
+    // Listen for specific driver movement
     socketService.onDriverLocationUpdate((data) => {
-      if (data.orderId === id) setDriverPos([data.latitude, data.longitude]);
+      if (data.orderId === id && !isSimulating) {
+        setDriverPos([data.latitude, data.longitude]);
+      }
     });
 
     return () => {
-      // Logic for cleanup of specific listeners if needed
+      if (simIntervalRef.current) clearInterval(simIntervalRef.current);
     };
-  }, [id]);
+  }, [id, isSimulating]);
+
+  const toggleSimulation = () => {
+    if (isSimulating) {
+      if (simIntervalRef.current) clearInterval(simIntervalRef.current);
+      setIsSimulating(false);
+    } else {
+      setIsSimulating(true);
+      const startLat = order?.pickupLatitude || 37.7749;
+      const startLng = order?.pickupLongitude || -122.4194;
+      const endLat = order?.deliveryLatitude || 37.7833;
+      const endLng = order?.deliveryLongitude || -122.4167;
+      
+      let step = 0;
+      const totalSteps = 100;
+      
+      simIntervalRef.current = window.setInterval(() => {
+        step++;
+        if (step > totalSteps) {
+          clearInterval(simIntervalRef.current!);
+          setIsSimulating(false);
+          return;
+        }
+        
+        const currentLat = startLat + (endLat - startLat) * (step / totalSteps);
+        const currentLng = startLng + (endLng - startLng) * (step / totalSteps);
+        setDriverPos([currentLat, currentLng]);
+      }, 500);
+    }
+  };
 
   if (loading || !order) return (
     <div className="h-screen flex items-center justify-center bg-slate-950">
        <div className="flex flex-col items-center space-y-4">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <RefreshCw className="animate-spin text-blue-500" size={32} />
           <p className="text-white font-black text-xs uppercase tracking-[0.3em]">Calibrating Satellite Tracking...</p>
        </div>
     </div>
@@ -103,7 +135,7 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
 
         <div className="pointer-events-auto flex flex-col items-end space-y-2">
            <div className="bg-slate-900/90 backdrop-blur-md border border-white/10 px-6 py-4 rounded-[2rem] shadow-2xl flex items-center gap-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
+              <div className="w-10 h-10 bg-[#845C00] rounded-xl flex items-center justify-center text-white">
                  <Truck size={20} />
               </div>
               <div>
@@ -115,6 +147,17 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
                 {order.status.replace('_', ' ')}
               </Badge>
            </div>
+           
+           <Button 
+            onClick={toggleSimulation}
+            className={cn(
+              "pointer-events-auto rounded-xl px-4 h-10 text-[10px] font-black uppercase tracking-widest border-none transition-all",
+              isSimulating ? "bg-rose-600 text-white animate-pulse" : "bg-white/10 text-white hover:bg-white/20"
+            )}
+           >
+             {isSimulating ? <Pause size={14} className="mr-2" /> : <Play size={14} className="mr-2" />}
+             {isSimulating ? "Stop Simulation" : "Simulate Transit"}
+           </Button>
         </div>
       </div>
 
@@ -134,7 +177,7 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
                <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-4">
                      <div className="relative">
-                        <div className="w-16 h-16 bg-blue-100 rounded-[1.5rem] flex items-center justify-center font-black text-2xl text-blue-600">
+                        <div className="w-16 h-16 bg-blue-100 rounded-[1.5rem] flex items-center justify-center font-black text-2xl text-[#845C00]">
                            JD
                         </div>
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full"></div>
@@ -148,10 +191,10 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
                      </div>
                   </div>
                   <div className="flex gap-2">
-                     <Button size="icon" variant="outline" className="rounded-xl h-12 w-12 border-slate-100 bg-slate-50 text-slate-600 hover:text-blue-600 transition-colors">
+                     <Button size="icon" variant="outline" className="rounded-xl h-12 w-12 border-slate-100 bg-slate-50 text-slate-600 hover:text-[#845C00] transition-colors">
                         <MessageSquare size={18} />
                      </Button>
-                     <Button size="icon" variant="outline" className="rounded-xl h-12 w-12 border-slate-100 bg-slate-50 text-slate-600 hover:text-blue-600 transition-colors">
+                     <Button size="icon" variant="outline" className="rounded-xl h-12 w-12 border-slate-100 bg-slate-50 text-slate-600 hover:text-[#845C00] transition-colors">
                         <Phone size={18} />
                      </Button>
                   </div>
@@ -160,11 +203,11 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
                <div className="grid grid-cols-2 gap-4">
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Distance Left</p>
-                     <p className="text-xl font-black text-slate-900">1.2 <span className="text-xs text-slate-400">km</span></p>
+                     <p className="text-xl font-black text-slate-900">{isSimulating ? (Math.random() * 2).toFixed(1) : "1.2"} <span className="text-xs text-slate-400">km</span></p>
                   </div>
                   <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-                     <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Estimated ETA</p>
-                     <p className="text-xl font-black text-blue-600">~ 8 <span className="text-xs text-blue-400 opacity-70">mins</span></p>
+                     <p className="text-[10px] font-black text-[#845C00] uppercase tracking-widest mb-1">Estimated ETA</p>
+                     <p className="text-xl font-black text-[#845C00]">~ {isSimulating ? Math.floor(Math.random() * 10) + 1 : "8"} <span className="text-xs text-[#845C00] opacity-70">mins</span></p>
                   </div>
                </div>
 
@@ -175,7 +218,9 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
                      </div>
                      <div>
                         <p className="text-sm font-bold text-slate-900">Current Activity</p>
-                        <p className="text-xs text-slate-500 leading-relaxed">Driver has just picked up your {order.packageType.toLowerCase()} and is currently moving towards your destination.</p>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                          {isSimulating ? "Driver is maintaining optimal speed and heading towards your coordinates." : "Driver has just picked up your shipment and is currently moving towards your destination."}
+                        </p>
                      </div>
                   </div>
                </div>
@@ -186,7 +231,7 @@ const TrackingPage: React.FC<TrackingPageProps> = ({ isPublic = false }) => {
                   <ShieldCheck className="text-emerald-500" size={20} />
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">SwiftDrop Secure™ Tracking</span>
                </div>
-               <Button variant="ghost" className="text-xs font-black text-blue-600 uppercase tracking-widest p-0 h-auto hover:bg-transparent">Help</Button>
+               <Button variant="ghost" className="text-xs font-black text-[#845C00] uppercase tracking-widest p-0 h-auto hover:bg-transparent">Help</Button>
             </div>
          </div>
       </div>

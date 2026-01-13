@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 
 /**
@@ -11,7 +10,7 @@ export const aiLogisticsService = {
    * Generates deep-thinking fleet optimization suggestions using Pro models and Maps grounding.
    */
   async getFleetOptimizationInsights(currentStats: any) {
-    // Initialize fresh instance at call-site
+    // Initialize fresh instance at call-site as per guidelines
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     try {
@@ -32,7 +31,6 @@ export const aiLogisticsService = {
         config: {
           systemInstruction: "You are the Lead Logistics Orchestrator. Your tone is clinical and strategic. Use Maps grounding to verify location-based recommendations.",
           tools: [{ googleMaps: {} }],
-          // Use thinking budget for complex reasoning tasks
           thinkingConfig: { thinkingBudget: 4000 }
         }
       });
@@ -65,7 +63,7 @@ export const aiLogisticsService = {
   },
 
   /**
-   * Connects to the Live API for hands-free driver interaction.
+   * Connects to the Live API for hands-free driver interaction with transcription support.
    */
   async connectLiveRelay(callbacks: any) {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -77,6 +75,9 @@ export const aiLogisticsService = {
         speechConfig: {
           voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
         },
+        // Enable transcriptions for both model output and driver input
+        outputAudioTranscription: {},
+        inputAudioTranscription: {},
         systemInstruction: "You are the Driver's Voice Co-Pilot. Provide hands-free status updates and route navigation tips. Keep responses extremely brief and safe for driving."
       }
     });

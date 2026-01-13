@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Phone, X, Activity, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Phone, X, Activity, Volume2, MessageCircle } from 'lucide-react';
 import { aiLogisticsService } from '../../services/ai.service';
 import { cn } from '../../lib/utils';
 
@@ -8,6 +7,8 @@ const VoiceRelay: React.FC = () => {
   const [isActive, setIsActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [transcription, setTranscription] = useState<string>('');
+  const [userSpeech, setUserSpeech] = useState<string>('');
   const sessionRef = useRef<any>(null);
   
   // Audio state
@@ -34,6 +35,8 @@ const VoiceRelay: React.FC = () => {
   const startSession = async () => {
     setIsConnecting(true);
     setError(null);
+    setTranscription('');
+    setUserSpeech('');
     
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -62,6 +65,7 @@ const VoiceRelay: React.FC = () => {
           processor.connect(inputCtx.destination);
         },
         onmessage: async (msg: any) => {
+          // Handle model audio output
           const b64Audio = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
           if (b64Audio && audioContextRef.current) {
             nextStartTimeRef.current = Math.max(nextStartTimeRef.current, audioContextRef.current.currentTime);
@@ -73,10 +77,28 @@ const VoiceRelay: React.FC = () => {
             nextStartTimeRef.current += buffer.duration;
             sourcesRef.current.add(source);
           }
+
+          // Handle transcriptions
+          if (msg.serverContent?.outputTranscription) {
+            setTranscription(prev => prev + msg.serverContent.outputTranscription.text);
+          }
+          if (msg.serverContent?.inputTranscription) {
+            setUserSpeech(prev => prev + msg.serverContent.inputTranscription.text);
+          }
+          
+          if (msg.serverContent?.turnComplete) {
+            // Reset local buffers for next turn if needed, or keep for history
+            setTimeout(() => {
+              setTranscription('');
+              setUserSpeech('');
+            }, 5000);
+          }
+
           if (msg.serverContent?.interrupted) {
             sourcesRef.current.forEach(s => s.stop());
             sourcesRef.current.clear();
             nextStartTimeRef.current = 0;
+            setTranscription('[Interrupted]');
           }
         },
         onclose: () => stopSession(),
@@ -103,17 +125,40 @@ const VoiceRelay: React.FC = () => {
   return (
     <div className="fixed bottom-24 right-8 z-[110]">
       {isActive && (
-        <div className="absolute bottom-20 right-0 w-64 bg-slate-900 rounded-[2rem] p-6 text-white shadow-3xl animate-in slide-in-from-bottom-5 border border-white/10">
-           <div className="flex items-center gap-3 mb-4">
-              <div className="flex gap-1 items-end h-4">
-                 {[0,1,2,3,4].map(i => (
-                   <div key={i} className="w-1 bg-blue-500 animate-pulse" style={{ height: `${Math.random()*100}%`, animationDelay: `${i*0.1}s` }} />
-                 ))}
+        <div className="absolute bottom-20 right-0 w-80 bg-slate-900 rounded-[2.5rem] p-6 text-white shadow-3xl animate-in slide-in-from-bottom-5 border border-white/10">
+           <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1 items-end h-4">
+                   {[0,1,2,3,4].map(i => (
+                     <div key={i} className="w-1 bg-blue-500 animate-pulse" style={{ height: `${Math.random()*100}%`, animationDelay: `${i*0.1}s` }} />
+                   ))}
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Co-Pilot Active</span>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Co-Pilot Active</span>
+              <Activity size={14} className="text-blue-500" />
            </div>
-           <p className="text-xs text-slate-400 leading-relaxed italic">"You are approaching traffic on Market St. I suggest a right turn on 4th..."</p>
-           <button onClick={stopSession} className="mt-4 w-full py-2 bg-white/10 hover:bg-rose-500/20 text-rose-400 rounded-xl text-[10px] font-black uppercase">Terminate Link</button>
+           
+           <div className="space-y-4 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+              {userSpeech && (
+                <div className="flex gap-2 items-start opacity-70">
+                  <Mic size={12} className="mt-1 shrink-0 text-slate-400" />
+                  <p className="text-[11px] font-medium text-slate-300 italic">{userSpeech}</p>
+                </div>
+              )}
+              <div className="flex gap-2 items-start">
+                <Volume2 size={12} className="mt-1 shrink-0 text-blue-400" />
+                <p className="text-xs text-blue-50 leading-relaxed font-bold">
+                  {transcription || "Listening for voice commands..."}
+                </p>
+              </div>
+           </div>
+
+           <button 
+             onClick={stopSession} 
+             className="mt-6 w-full py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors shadow-lg"
+           >
+             Terminate Link
+           </button>
         </div>
       )}
 
@@ -122,7 +167,7 @@ const VoiceRelay: React.FC = () => {
         disabled={isConnecting}
         className={cn(
           "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl group",
-          isActive ? "bg-rose-600 scale-110" : "bg-slate-900 hover:bg-blue-600"
+          isActive ? "bg-rose-600 scale-110" : "bg-[#845C00] hover:bg-[#845C00]/90"
         )}
       >
         {isConnecting ? <Activity className="text-white animate-pulse" /> : 
